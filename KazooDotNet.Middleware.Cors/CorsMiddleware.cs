@@ -21,12 +21,13 @@ namespace KazooDotNet.Middleware.Cors
             _next = next;
         }
 
-        public Task Invoke(HttpContext context)
+        public async Task Invoke(HttpContext context)
         {
-            var headers = context.Response.Headers;
+            await _next(context);
             var rHeaders = context.Request.Headers;
             if (!rHeaders.ContainsKey("Origin"))
-                return _next(context);
+                return;
+            var headers = context.Response.Headers;
             var origin = rHeaders["Origin"].First().ToLowerInvariant();
             var host = (_opts.RemoteHostHeader != null && rHeaders.ContainsKey(_opts.RemoteHostHeader) ? 
                 rHeaders[_opts.RemoteHostHeader].First() : 
@@ -48,7 +49,6 @@ namespace KazooDotNet.Middleware.Cors
                 _opts.OnSuccess?.Invoke(headers);
             }
             headers["Vary"] = "Origin";
-            return context.Request.Method.ToLower() != "options" ? _next(context) : Task.CompletedTask;
         }
 
         private static string BaseHost(string host)

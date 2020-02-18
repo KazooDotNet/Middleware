@@ -23,7 +23,8 @@ namespace KazooDotNet.Middleware.Cors
 
         public async Task Invoke(HttpContext context)
         {
-            await _next(context);
+            if (context.Request.Method != "OPTIONS")
+                await _next(context);
             var rHeaders = context.Request.Headers;
             if (!rHeaders.ContainsKey("Origin"))
                 return;
